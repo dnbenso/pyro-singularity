@@ -1,0 +1,363 @@
+Bootstrap: docker
+From: ubuntu:latest
+
+%help
+    This container assembles and polishes genomes using the Pyro front-end wrapper. Any of the Pyro programs can be called normally through the container to run them individually without Pyro getting involved, but generally better to go through the wrapper script.
+
+%labels
+    Maintainer Genomeassembler
+    Version v1.0
+
+%environment
+    BUSCO_CONFIG_FILE=/usr/local/busco/config/myconfig.ini
+    AUGUSTUS_CONFIG_PATH=/usr/local/Augustus/config/
+    RSTUDIO_PANDOC=/usr/bin/pandoc
+    export BUSCO_CONFIG_FILE AUGUSTUS_CONFIG_PATH RSTUDIO_PANDOC
+    export PATH=$PATH:/add/to/path:/add/to/path2
+
+%runscript
+    echo "Singularity loaded. Running $*"
+    exec "$@"
+
+%post
+## update and upgrade packages, get basics, set up bashrc ##
+    rm ~/.bashrc && touch ~/.bashrc
+    . ~/.bashrc
+    apt-get update && apt-get install sudo wget curl -y && apt-get upgrade -y
+
+## miniconda ##
+# get
+    wget https://repo.anaconda.com/miniconda/Miniconda3-4.6.14-Linux-x86_64.sh
+    chmod +x Miniconda3-4.6.14-Linux-x86_64.sh
+    ./Miniconda3-4.6.14-Linux-x86_64.sh -b -u
+    rm Miniconda3-4.6.14-Linux-x86_64.sh
+    ~/miniconda3/bin/conda init bash
+    . ~/.bashrc
+# set up conda-only packages
+    /bin/bash -c 'conda config --add channels defaults'
+    /bin/bash -c 'conda config --add channels bioconda'
+    /bin/bash -c 'conda config --add channels conda-forge'
+    /bin/bash -c 'conda install psutil=5.7.3'
+    /bin/bash -c 'conda install biopython=1.78'
+    /bin/bash -c 'conda install bbmap=38.87'
+    /bin/bash -c 'conda install sepp=4.3.10'
+    /bin/bash -c 'conda install minimap2=2.17'
+    /bin/bash -c 'conda install hypo=1.0.3'
+    /bin/bash -c 'conda install meraculous=2.2.6'
+    /bin/bash -c 'conda install haslr=0.8a1'
+    /bin/bash -c 'conda install medaka=1.2.0'
+    /bin/bash -c 'conda install abyss=2.2.5'
+    /bin/bash -c 'conda install masurca=3.4.2'
+
+## get things from apt: ##
+# first batch
+    DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential default-jre dirmngr gnupg apt-transport-https ca-certificates software-properties-common zlib1g-dev cmake tzdata
+# second batch
+    apt-get install -y libcurl4-gnutls-dev libpthread-stubs0-dev libboost-all-dev openmpi-bin libopenmpi-dev libsparsehash-dev mpi libomp-dev libjemalloc-dev libbz2-dev libncurses5-dev libncursesw5-dev liblzma-dev perl pigz git samtools cutadapt fastqc bwa ray jellyfish swig libsqlite3-dev libmysql++-dev libgsl-dev liblpsolve55-dev libsuitesparse-dev libbamtools-dev pandoc
+
+## get R ##
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+    add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
+    apt install -y r-base
+
+    cd /usr/local
+## htslib ##
+# get
+    wget https://github.com/samtools/htslib/releases/download/1.11/htslib-1.11.tar.bz2
+    tar -vxjf htslib-1.11.tar.bz2
+# make
+    cd htslib-1.11
+    make
+# cleanup + add to path
+    cd .. && rm htslib-1.11.tar.bz2
+    export PATH=$PATH:$( realpath htslib-1.11 )/
+    echo "export PATH=\$PATH:$( realpath htslib-1.11 )/" >> ~/.bashrc    
+
+## Augustus ##
+    git clone https://github.com/Gaius-Augustus/Augustus.git
+    cd Augustus
+    cd auxprogs/bam2wig
+    mkdir tools && cd tools
+    git clone https://github.com/samtools/htslib.git
+    cd htslib && make -j2
+    cd ..
+    git clone https://github.com/samtools/bcftools.git
+    cd bcftools && make -j2
+    cd ..
+    git clone https://github.com/samtools/samtools.git
+    cd samtools && make -j2
+    cd ..
+    export TOOLDIR="$( pwd )"
+    cd ../../..
+    make -j2
+    make install
+    cd ..
+    export PATH=$PATH:$( realpath Augustus/scripts )/
+    echo "export PATH=\$PATH:$( realpath Augustus/scripts )/" >> ~/.bashrc
+
+# ncbi-blast 
+    wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.11.0+-x64-linux.tar.gz
+    tar -xzf ncbi-blast-2.11.0+-x64-linux.tar.gz
+    rm ncbi-blast-2.11.0+-x64-linux.tar.gz
+    export PATH=$PATH:$( realpath ncbi-blast-2.11.0+/bin )/
+    echo "export PATH=\$PATH:$( realpath ncbi-blast-2.11.0+/bin )/" >> ~/.bashrc
+    
+# kmc 
+#    git clone https://github.com/refresh-bio/KMC.git kmc
+#    cd kmc && make -j2 
+
+# prodigal
+    wget https://github.com/hyattpd/Prodigal/archive/v2.6.3.tar.gz && tar zxf v2.6.3.tar.gz
+    cd Prodigal-2.6.3 && make install 
+    cd ..
+
+# hmmer
+    wget http://eddylab.org/software/hmmer/hmmer.tar.gz && tar zxf hmmer.tar.gz
+    cd hmmer-3.3.1 && ./configure
+    make -j2
+    make install
+    cd ..
+    rm hmmer.tar.gz
+
+# trim-galore
+    curl -fsSL https://github.com/FelixKrueger/TrimGalore/archive/0.6.6.tar.gz -o trim_galore.tar.gz
+    tar zxf trim_galore.tar.gz
+    rm trim_galore.tar.gz
+    export PATH=$PATH:$( realpath TrimGalore-0.6.6 )/
+    echo "export PATH=\$PATH:$( realpath TrimGalore-0.6.6 )/" >> ~/.bashrc
+
+# filtong
+    git clone https://github.com/rrwick/Filtlong.git
+    cd Filtlong && make -j2
+    cp bin/filtlong /usr/local/bin 
+    cd ..
+
+# seqtk
+    git clone https://github.com/lh3/seqtk.git
+    cd seqtk && make -j2
+    cp seqtk /usr/local/bin
+    cd ..
+
+# ratatosk
+    git clone --recursive https://github.com/DecodeGenetics/Ratatosk.git
+    cd Ratatosk && mkdir build && cd build
+    cmake ..
+    make -j2
+    make install
+    cd ../..
+
+# masurca
+#    wget https://github.com/alekseyzimin/masurca/releases/download/v3.4.2/MaSuRCA-3.4.2.tar.gz && tar zxf MaSuRCA-3.4.2.tar.gz
+#    cd MaSuRCA-3.4.2 && ./install.sh 
+#    cd ..
+#    rm MaSuRCA-3.4.2.tar.gz
+#    export PATH=$PATH:$( realpath MaSuRCA-3.4.2/bin )/
+#    echo "export PATH=\$PATH:$( realpath MaSuRCA-3.4.2/bin )/" >> ~/.bashrc
+
+# platanus
+    cd /usr/local/bin
+    curl -o platanus -L http://platanus.bio.titech.ac.jp/?ddownload=145
+    chmod ugo+x platanus
+    cd /usr/local
+
+# soapdenovo2
+    wget https://github.com/aquaskyline/SOAPdenovo2/archive/r242.tar.gz && tar zxf r242.tar.gz
+    cd SOAPdenovo2-r242
+    mkdir -p samtools && cd samtools
+    curl -o samtools.tar.bz2 -L https://sourceforge.net/projects/samtools/files/samtools/0.1.19/samtools-0.1.19.tar.bz2/download 
+    tar xjf samtools.tar.bz2
+    cd samtools-0.1.19 && make
+    cd .. && rm samtools.tar.bz2
+    cd ..
+    cp samtools/samtools-0.1.19/libbam.a sparsePregraph/inc/libbam.a
+    make
+    cd ..
+    rm r242.tar.gz
+    export PATH=$PATH:$( realpath SOAPdenovo2-r242 )/
+    echo "export PATH=\$PATH:$( realpath SOAPdenovo2-r242 )/" >> ~/.bashrc
+
+# spades
+    wget http://cab.spbu.ru/files/release3.14.1/SPAdes-3.14.1-Linux.tar.gz && tar zxf SPAdes-3.14.1-Linux.tar.gz
+    rm SPAdes-3.14.1-Linux.tar.gz
+    export PATH=$PATH:$( realpath SPAdes-3.14.1-Linux/bin )/
+    echo "export PATH=\$PATH:$( realpath SPAdes-3.14.1-Linux/bin )/" >> ~/.bashrc
+
+# sparseassembler
+    git clone https://github.com/yechengxi/SparseAssembler.git && cd SparseAssembler
+    g++ -O3 -o SparseAssembler *.cpp
+    cd ..
+    export PATH=$PATH:$( realpath SparseAssembler )/
+    echo "export PATH=\$PATH:$( realpath SparseAssembler )/" >> ~/.bashrc
+
+# w2rap
+#    git clone https://github.com/gonzalogacc/w2rap-contigger.git && cd w2rap-contigger
+#    cmake -D CMAKE_CXX_COMPILER=g++ .
+#    make -j2
+#    cd ..
+#    export PATH=$PATH:$( realpath w2rap-contigger/bin )/
+#    echo "export PATH=\$PATH:$( realpath w2rap-contigger/bin )/" >> ~/.bashrc
+
+# canu
+    git clone https://github.com/marbl/canu.git && cd canu/src
+    make -j2
+    cd ../..
+    export PATH=$PATH:$( realpath canu/build/bin )/
+    echo "export PATH=\$PATH:$( realpath canu/build/bin )/" >> ~/.bashrc
+
+# flye
+    git clone https://github.com/fenderglass/Flye.git && cd Flye 
+    python setup.py install
+    cd ..
+    export PATH=$PATH:$( realpath Flye/bin )/
+    echo "export PATH=\$PATH:$( realpath Flye/bin )/" >> ~/.bashrc
+
+# falcon
+#    git clone https://github.com/PacificBiosciences/FALCON_unzip.git && cd FALCON_unzip
+#    python setup.py install
+#    cd ..
+
+# mecat
+    git clone https://github.com/xiaochuanle/MECAT2.git && cd MECAT2
+    make -j2
+    cd ..
+    export PATH=$PATH:$( realpath MECAT2/Linux-amd64/bin )/
+    echo "export PATH=\$PATH:$( realpath MECAT2/Linux-amd64/bin )/" >> ~/.bashrc
+
+# miniasm
+    git clone https://github.com/lh3/miniasm.git && cd miniasm && make -j2
+    cd ..
+    export PATH=$PATH:$( realpath miniasm )/
+    echo "export PATH=\$PATH:$( realpath miniasm )/" >> ~/.bashrc
+
+# necat
+    wget https://github.com/xiaochuanle/NECAT/releases/download/v0.0.1_update20200803/necat_20200803_Linux-amd64.tar.gz && tar zxf necat_20200803_Linux-amd64.tar.gz
+    rm necat_20200803_Linux-amd64.tar.gz
+    export PATH=$PATH:$( realpath NECAT/Linux-amd64/bin )/
+    echo "export PATH=\$PATH:$( realpath NECAT/Linux-amd64/bin )/" >> ~/.bashrc
+
+# raven
+    git clone --recursive https://github.com/lbcb-sci/raven.git raven && cd raven
+    mkdir build && cd build
+    cmake -DCMAKE_BUILD_TYPE=Release .. && make -j2
+    cd ../..
+    export PATH=$PATH:$( realpath raven/build/bin )/
+    echo "export PATH=\$PATH:$( realpath raven/build/bin )/" >> ~/.bashrc
+
+# shasta
+    cd /usr/local/bin/
+    curl -o shasta -L https://github.com/chanzuckerberg/shasta/releases/download/0.6.0/shasta-Linux-0.6.0
+    chmod ugo+x shasta
+    cd /usr/local/
+
+# wtdbg2
+    git clone https://github.com/ruanjue/wtdbg2 && cd wtdbg2
+    make -j2
+    cd ..
+    export PATH=$PATH:$( realpath wtdbg2 )/
+    echo "export PATH=\$PATH:$( realpath wtdbg2 )/" >> ~/.bashrc
+
+# dbg2olc
+    git clone https://github.com/yechengxi/DBG2OLC.git && cd DBG2OLC
+    g++ -O3 -o DBG2OLC *.cpp
+    cd ..
+    export PATH=$PATH:$( realpath DBG2OLC )/
+    echo "export PATH=\$PATH:$( realpath DBG2OLC )/" >> ~/.bashrc
+
+# sparc
+    git clone https://github.com/yechengxi/Sparc.git && cd Sparc
+    g++ -O3 -o Sparc *.cpp 
+    cd ..
+    export PATH=$PATH:$( realpath Sparc )/
+    echo "export PATH=\$PATH:$( realpath Sparc )/" >> ~/.bashrc
+
+# nextpolish
+    wget https://github.com/Nextomics/NextPolish/releases/download/v1.3.0/NextPolish.tgz && tar zxf NextPolish.tgz
+    cd NextPolish && make -j2
+    cd ..
+    rm NextPolish.tgz
+    export PATH=$PATH:$( realpath NextPolish )/
+    echo "export PATH=\$PATH:$( realpath NextPolish )/" >> ~/.bashrc
+
+# nthits
+    wget https://github.com/bcgsc/ntHits/archive/ntHits-v0.0.1.tar.gz && tar zxf ntHits-v0.0.1.tar.gz
+    mv ntHits-ntHits-v0.0.1 ntHits && cd ntHits 
+    ./autogen.sh && ./configure && make -j2 && make install
+    cd ..
+    rm ntHits-v0.0.1.tar.gz
+
+# ntedit
+    git clone https://github.com/bcgsc/ntEdit.git && cd ntEdit
+    make -j2 ntedit
+    cd ..
+    export PATH=$PATH:$( realpath ntEdit )/
+    echo "export PATH=\$PATH:$( realpath ntEdit )/" >> ~/.bashrc
+
+# pilon - note: jar file is in /usr/local/pilon.jar
+    wget https://github.com/broadinstitute/pilon/releases/download/v1.23/pilon-1.23.jar
+    mv pilon-1.23.jar pilon.jar
+
+# racon
+    git clone --recursive https://github.com/lbcb-sci/racon.git racon && cd racon
+    mkdir build && cd build
+    cmake -DCMAKE_BUILD_TYPE=Release ..
+    make -j2
+    cd ../..
+    export PATH=$PATH:$( realpath racon/build/bin )/
+    echo "export PATH=\$PATH:$( realpath racon/build/bin )/" >> ~/.bashrc
+
+# assembly-stats
+    git clone https://github.com/sanger-pathogens/assembly-stats.git && cd assembly-stats
+    mkdir build && cd build
+    cmake ..
+    make -j2
+    make install
+    cd ../..
+
+# metaeuk
+    git clone https://github.com/soedinglab/metaeuk.git metaeuk && cd metaeuk
+    mkdir build && cd build
+    cmake -DCMAKE_BUILD_TYPE=Release -DHAVE_MPI=1 -DCMAKE_INSTALL_PREFIX=. ..
+    make -j2
+    make install
+    cd ../..
+
+# busco
+    git clone https://gitlab.com/ezlab/busco.git && cd busco
+    python setup.py install
+    ./scripts/busco_configurator.py config/config.ini config/myconfig.ini
+    cd ..
+
+# buscomp
+    git clone https://github.com/slimsuite/buscomp.git
+    export PATH=$PATH:$( realpath buscomp/code )/
+    echo "export PATH=\$PATH:$( realpath buscomp/code )/" >> ~/.bashrc
+
+# genomescope
+    git clone https://github.com/schatzlab/genomescope.git
+    export PATH=$PATH:$( realpath genomescope )/
+    echo "export PATH=\$PATH:$( realpath genomescope )/" >> ~/.bashrc
+
+# mashmap
+    wget https://github.com/marbl/MashMap/releases/download/v2.0/mashmap-Linux64-v2.0.tar.gz && tar zxf mashmap-Linux64-v2.0.tar.gz 
+    rm mashmap-Linux64-v2.0.tar.gz
+    export PATH=$PATH:$( realpath mashmap-Linux64-v2.0 )/
+    echo "export PATH=\$PATH:$( realpath mashmap-Linux64-v2.0 )/" >> ~/.bashrc
+
+# quast
+    wget https://downloads.sourceforge.net/project/quast/quast-5.0.2.tar.gz && tar zxf quast-5.0.2.tar.gz
+    cd quast-5.0.2 && python setup.py install
+    cd ..
+    rm quast-5.0.2.tar.gz
+
+# red
+    git clone https://github.com/BioinformaticsToolsmith/Red.git && cd Red/src_2.0
+    sed -i 's|CXX = g++-8|CXX = g++|g' Makefile
+    make bin && make -j2
+    cd ../..
+    export PATH=$PATH:$( realpath Red/bin )/
+    echo "export PATH=\$PATH:$( realpath Red/bin )/" >> ~/.bashrc
+
+# done!
+
+
+
