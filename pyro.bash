@@ -489,7 +489,7 @@ cd $PKG_DIR && stow -v quast-${QUAST_VERSION}
 cd $BLD_DIR && git clone https://github.com/dnbenso/pyro.git
 cd pyro/scripts && chmod a+x *
 mkdir -p $PKG_DIR/pyro_scripts/bin
-cp -r $BLD_DIR/pyro/scripts/*.sh $BLD_DIR/pyro/scripts/*.py $PKG_DIR/pyro_scripts/bin
+cp -r $BLD_DIR/pyro/scripts/*.sh $BLD_DIR/pyro/scripts/*.py $BLD_DIR/pyro/scripts/*.pl $PKG_DIR/pyro_scripts/bin
 cd $PKG_DIR && stow -v pyro_scripts
 
 ## genomescope ##
