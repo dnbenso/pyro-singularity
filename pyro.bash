@@ -506,8 +506,11 @@ chmod a+x Miniconda3-${MINICONDA_VERSION}-Linux-x86_64.sh && ./Miniconda3-${MINI
 conda config --add channels defaults
 conda config --add channels bioconda
 conda config --add channels conda-forge
-# Fix flye executeable location
+# Create the conda environments
 conda create -y --name pb_falcon pb-falcon
-conda create -y --name masurca masurca=3.4.2
 conda create -y --name medaka medaka=1.2.0
 conda create -y --name meraculous meraculous=2.2.6
+conda create -y --name masurca masurca=3.4.2
+# Add the masurca special version of flye
+cd /usr/local/stow/miniconda3-4.6.14/envs/masurca
+git clone https://github.com/alekseyzimin/Flye.git
