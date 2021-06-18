@@ -300,8 +300,8 @@ cd $PKG_DIR && stow -v seqtk
 cd $BLD_DIR && git clone --recursive https://github.com/DecodeGenetics/Ratatosk.git
 mkdir Ratatosk/build && cd Ratatosk/build
 # build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PKG_DIR/ratatosk -G Ninja ..
-ninja -j $CPUS && ninja install
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PKG_DIR/ratatosk ..
+make -j $CPUS && make install
 cd $PKG_DIR && stow -v ratatosk
 
 ## w2wrap ##
