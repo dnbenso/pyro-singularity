@@ -514,3 +514,6 @@ conda create -y --name masurca masurca=3.4.2
 # Add the masurca special version of flye
 cd /usr/local/stow/miniconda3-4.6.14/envs/masurca
 git clone https://github.com/alekseyzimin/Flye.git
+cd Flye/lib/minimap2 && wget https://raw.githubusercontent.com/attractivechaos/klib/master/ketopt.h
+cd ../.. && make -j $CPUS
+
