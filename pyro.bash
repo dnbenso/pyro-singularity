@@ -9,7 +9,7 @@ export BUSCO_CONFIG_FILE AUGUSTUS_CONFIG_PATH RSTUDIO_PANDOC
 SRC_DIR=/usr/local/src
 BLD_DIR=/usr/local/build
 PKG_DIR=/usr/local/stow
-CPUS=16
+CPUS=8
 mkdir -p $SRC_DIR $BLD_DIR $PKG_DIR
 
 ## update and upgrade packages, get basics, set up bashrc ##
@@ -28,6 +28,7 @@ apt install -y libsqlite3-dev libmysql++-dev libgsl-dev liblpsolve55-dev libsuit
 apt install -y pandoc python3-setuptools abyss doxygen python3-biopython python3-pandas python2 python3-matplotlib
 apt install -y python
 apt install -y g++-7
+apt install -y ninja-build
 apt autoremove -y
 apt autoclean -y
 
@@ -171,8 +172,8 @@ cd $SRC_DIR && wget https://github.com/kensung-lab/hypo/archive/refs/tags/v${HYP
 cd $BLD_DIR && tar -xzf $SRC_DIR/hypo-${HYPO_VERSION}.tar.gz
 cd hypo-${HYPO_VERSION}/external/install && mv htslib htslib.back && ln -s /usr/local/stow/htslib-1.12 htslib
 mkdir $BLD_DIR/hypo-${HYPO_VERSION}/build && cd $BLD_DIR/hypo-${HYPO_VERSION}/build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PKG_DIR/hypo-${HYPO_VERSION} ..
-make -j $CPUS && make install
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PKG_DIR/hypo-${HYPO_VERSION} -G Ninja ..
+ninja -j $CPUS && ninja install
 cd $PKG_DIR && stow -v hypo-${HYPO_VERSION}
 
 ## soapdenovo2 ##
@@ -207,8 +208,8 @@ cd $SRC_DIR && wget https://github.com/lbcb-sci/raven/archive/refs/tags/${RAVEN_
 cd $BLD_DIR && tar -xzf $SRC_DIR/raven-${RAVEN_VERSION}.tar.gz
 # build
 cd raven-${RAVEN_VERSION} && mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PKG_DIR/raven-${RAVEN_VERSION} ..
-make -j $CPUS && make install
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PKG_DIR/raven-${RAVEN_VERSION} -G Ninja ..
+ninja -j $CPUS && ninja install
 cd $PKG_DIR && stow -v raven-${RAVEN_VERSION}
 
 ## wtdbg2 ##
@@ -286,8 +287,8 @@ cd $PKG_DIR && stow -v seqtk
 cd $BLD_DIR && git clone --recursive https://github.com/DecodeGenetics/Ratatosk.git
 mkdir Ratatosk/build && cd Ratatosk/build
 # build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PKG_DIR/ratatosk ..
-make -j $CPUS && make install
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PKG_DIR/ratatosk -G Ninja ..
+ninja -j $CPUS && ninja install
 cd $PKG_DIR && stow -v ratatosk
 
 ## w2wrap ##
@@ -297,8 +298,8 @@ cd w2rap-contigger
 wget https://raw.githubusercontent.com/dnbenso/patches/main/src/VariantCallTools.patch && patch src/paths/long/VariantCallTools.cc VariantCallTools.patch
 # build
 mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-7 -DCMAKE_INSTALL_PREFIX=$PKG_DIR/w2rap-contigger ..
-make -j $CPUS && make install
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-7 -DCMAKE_INSTALL_PREFIX=$PKG_DIR/w2rap-contigger -G Ninja ..
+ninja -j $CPUS && ninja install
 cd $PKG_DIR && stow -v w2rap-contigger
 
 ## dbg2olc ##
@@ -322,8 +323,8 @@ cd $PKG_DIR && stow -v dbg2olc
 cd $BLD_DIR && git clone --recursive https://github.com/lbcb-sci/racon.git racon
 cd racon && mkdir build && cd build
 # build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PKG_DIR/racon ..
-make -j $CPUS && make install
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PKG_DIR/racon -G Ninja ..
+ninja -j $CPUS && ninja install
 cd $PKG_DIR && stow -v racon
 
 ## assembly-stats ##
@@ -331,8 +332,8 @@ cd $PKG_DIR && stow -v racon
 cd $BLD_DIR && git clone https://github.com/sanger-pathogens/assembly-stats.git && cd assembly-stats
 mkdir build && cd build
 # build
-cmake -DCMAKE_BUILD_TYPE=Release -DINSTALL_DIR:PATH=$PKG_DIR/assembly-stats/bin ..
-make -j $CPUS && make install
+cmake -DCMAKE_BUILD_TYPE=Release -DINSTALL_DIR:PATH=$PKG_DIR/assembly-stats/bin -G Ninja ..
+ninja -j $CPUS && ninja install
 cd $PKG_DIR && stow -v assembly-stats
 
 ## metaeuk ##
@@ -340,8 +341,8 @@ cd $PKG_DIR && stow -v assembly-stats
 cd $BLD_DIR && git clone https://github.com/soedinglab/metaeuk.git && cd metaeuk
 mkdir build && cd build
 # build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PKG_DIR/metaeuk ..
-make -j $CPUS && make install
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PKG_DIR/metaeuk -G Ninja ..
+ninja -j $CPUS && ninja install
 cd $PKG_DIR && stow -v metaeuk
 
 ### Applications not compiled ###
@@ -514,6 +515,11 @@ conda create -y --name masurca masurca=3.4.2
 # Add the masurca special version of flye
 cd /usr/local/stow/miniconda3-4.6.14/envs/masurca
 git clone https://github.com/alekseyzimin/Flye.git
-cd Flye/lib/minimap2 && wget https://raw.githubusercontent.com/attractivechaos/klib/master/ketopt.h
+cd Flye/lib/minimap2 && wget https://raw.githubusercontent.com/attractivechaos/klib/master/ketopt.h 
 cd ../.. && make -j $CPUS
+
+# Cleanup
+#conda clean -a -y
+#cd $BLD_DIR && rm -rf *
+#cd $SRC_DIR && rm -f *
 
