@@ -9,9 +9,12 @@ export BUSCO_CONFIG_FILE AUGUSTUS_CONFIG_PATH RSTUDIO_PANDOC
 SRC_DIR=/usr/local/src
 BLD_DIR=/usr/local/build
 PKG_DIR=/usr/local/stow
-CPUS=8
+CPUS=30
 mkdir -p $SRC_DIR $BLD_DIR $PKG_DIR
+CFLAGS="-O2 -mtune=native -march=native"
+CXXFLAGS="$CFLAGS"
 
+sed -i 's/http:\/\/archive.ubuntu.com\/ubuntu\//http:\/\/mirror.aarnet.edu.au\/ubuntu\//' /etc/apt/sources.list
 ## update and upgrade packages, get basics, set up bashrc ##
 echo "# Pyro BASHRC File" >~/.bashrc
 echo "export PATH=\$PATH:/usr/local/scripts" >>~/.bashrc
@@ -509,6 +512,7 @@ conda config --add channels bioconda
 conda config --add channels conda-forge
 # Create the conda environments
 conda create -y --name pb_falcon pb-falcon
+conda install -y --name pb_falcon pb-dazzler
 conda create -y --name medaka medaka=1.2.0
 conda create -y --name meraculous meraculous=2.2.6
 conda create -y --name masurca masurca=3.4.2
