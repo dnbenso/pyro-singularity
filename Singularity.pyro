@@ -524,8 +524,7 @@ conda config --add channels defaults
 conda config --add channels bioconda
 conda config --add channels conda-forge
 # Create the conda environments
-conda create -y --name pb_falcon pb-falcon
-conda install -y --name pb_falcon pb-dazzler
+conda create -y --name pb_assembly pb-assembly
 conda create -y --name medaka medaka=1.2.0
 conda create -y --name meraculous meraculous=2.2.6
 conda create -y --name masurca masurca=3.4.2
