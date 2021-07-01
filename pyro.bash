@@ -234,6 +234,7 @@ cd $BLD_DIR && tar -xzf $SRC_DIR/nextpolish-${NEXTPOLISH_VERSION}.tgz && cd Next
 make -j $CPUS
 rm -f bin/samtools bin/minimap2
 mkdir $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION} && cp -r bin $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}
+cp nextPolish  $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin
 cd $PKG_DIR && stow -v nextpolish-${NEXTPOLISH_VERSION}
 
 ## nthits ##
