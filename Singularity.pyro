@@ -42,9 +42,7 @@ apt install -y mpi libomp-dev libjemalloc-dev libbz2-dev libncurses5-dev libncur
 apt install -y perl pigz git samtools cutadapt fastqc bwa ray jellyfish swig
 apt install -y libsqlite3-dev libmysql++-dev libgsl-dev liblpsolve55-dev libsuitesparse-dev libbamtools-dev
 apt install -y pandoc python3-setuptools abyss doxygen python3-biopython python3-pandas python2 python3-matplotlib
-apt install -y python
-apt install -y g++-7
-apt install -y ninja-build
+~_apt install -y python g++-7 ninja-build time
 apt autoremove -y
 apt autoclean -y
 
@@ -52,6 +50,10 @@ apt autoclean -y
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
 add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
 apt install -y r-base
+
+cd /usr/bin
+mv gunzip gunzip-gnu && ln unpigz gunzip
+mv gzip  gzip-gnu && ln pigz gzip
 
 # Compiled Apps
 HTSLIB_VERSION=1.12
