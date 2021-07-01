@@ -29,7 +29,7 @@ apt install -y mpi libomp-dev libjemalloc-dev libbz2-dev libncurses5-dev libncur
 apt install -y perl pigz git samtools cutadapt fastqc bwa ray jellyfish swig
 apt install -y libsqlite3-dev libmysql++-dev libgsl-dev liblpsolve55-dev libsuitesparse-dev libbamtools-dev
 apt install -y pandoc python3-setuptools abyss doxygen python3-biopython python3-pandas python2 python3-matplotlib
-apt install -y python g++-7 ninja-build time
+apt install -y python g++-7 ninja-build time python-psutil
 apt autoremove -y
 apt autoclean -y
 
@@ -232,9 +232,10 @@ cd $SRC_DIR && wget https://github.com/Nextomics/NextPolish/releases/download/v$
 cd $BLD_DIR && tar -xzf $SRC_DIR/nextpolish-${NEXTPOLISH_VERSION}.tgz && cd NextPolish
 # build
 make -j $CPUS
-rm -f bin/samtools bin/minimap2
-mkdir $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION} && cp -r bin $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}
+mkdir $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin && cp -r bin $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin
 cp nextPolish  $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin
+mkdir -p $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/lib/python2.7/site-packages
+cp -r lib $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/lib/python2.7/site-packages/nextpolish
 cd $PKG_DIR && stow -v nextpolish-${NEXTPOLISH_VERSION}
 
 ## nthits ##
