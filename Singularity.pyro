@@ -245,7 +245,7 @@ cd $SRC_DIR && wget https://github.com/Nextomics/NextPolish/releases/download/v$
 cd $BLD_DIR && tar -xzf $SRC_DIR/nextpolish-${NEXTPOLISH_VERSION}.tgz && cd NextPolish
 # build
 make -j $CPUS
-mkdir $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin && cp -r bin $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin
+mkdir -p $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin && cp -r bin $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin
 cp nextPolish  $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin
 mkdir -p $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/lib/python2.7/site-packages
 cp -r lib $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/lib/python2.7/site-packages/nextpolish
