@@ -247,8 +247,7 @@ cd $BLD_DIR && tar -xzf $SRC_DIR/nextpolish-${NEXTPOLISH_VERSION}.tgz && cd Next
 make -j $CPUS
 mkdir -p $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin && cp -r bin $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin
 cp nextPolish  $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin
-mkdir -p $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/lib/python2.7/site-packages
-cp -r lib $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/lib/python2.7/site-packages/nextpolish
+cp -r lib $PKG_DIR/nextpolish-${NEXTPOLISH_VERSION}/bin
 cd $PKG_DIR && stow -v nextpolish-${NEXTPOLISH_VERSION}
 
 ## nthits ##
