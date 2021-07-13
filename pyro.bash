@@ -92,7 +92,7 @@ FLYE_VERSION=2.8.3
 FALCON_UNZIP_VERSION=0.4.0
 #BUSCO_VERSION=
 #BUSCOMP_VERSION=
-QUAST_VERSION=5.0.2
+QUAST_VERSION=5.1.0rc1
 
 ### Git repo ###
 #GENOMESCOPE_VERSION=
@@ -481,10 +481,10 @@ cd $PKG_DIR && stow -v buscomp
 
 ## quast ##
 # get
-cd $SRC_DIR && wget https://downloads.sourceforge.net/project/quast/quast-${QUAST_VERSION}.tar.gz
+cd $SRC_DIR && wget https://github.com/ablab/quast/archive/refs/tags/quast_${QUAST_VERSION}.tar.gz
 cd $BLD_DIR && tar -xzf $SRC_DIR/quast-${QUAST_VERSION}.tar.gz
 # build
-cd quast-5.0.2 && python3 setup.py build -j $CPUS
+cd quast-quast_${QUAST_VERSION} && python3 setup.py build -j $CPUS
 python3 setup.py install --prefix=$PKG_DIR/quast-${QUAST_VERSION}
 cd $PKG_DIR && stow -v quast-${QUAST_VERSION}
 
