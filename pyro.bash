@@ -29,7 +29,7 @@ apt install -y mpi libomp-dev libjemalloc-dev libbz2-dev libncurses5-dev libncur
 apt install -y perl pigz git samtools cutadapt fastqc bwa ray jellyfish swig
 apt install -y libsqlite3-dev libmysql++-dev libgsl-dev liblpsolve55-dev libsuitesparse-dev libbamtools-dev
 apt install -y pandoc python3-setuptools abyss doxygen python3-biopython python3-pandas python2 python3-matplotlib
-apt install -y python g++-7 ninja-build time python-psutil
+apt install -y python g++-7 ninja-build time python-psutil vim
 apt autoremove -y
 apt autoclean -y
 
