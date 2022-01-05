@@ -29,3 +29,45 @@ Quick Installation
         ```
         singularity build pyro.simg pyro.def
         ```
+Getting Started
+---------------
+
+If your singularity image is on a slow filesystem copy it to a more appropriate
+place.
+
+To list the software and miniconda environments available:
+  ```
+  singularity run pyro.simg ls /usr/local/stow
+  singularity run pyro.simg ls /usr/local/stow/miniconda3-4.6.14/envs
+  ```
+Where pyro.simg is the singularity image (note: you may need to load the
+singularity module on a HPC system first).
+
+To run a program:
+  ```
+  singularity run singularity/pyro.simg seqtk
+  ```
+
+To run a miniconda env you'll need to create a bash script file and execute it
+with singularity.
+  ```
+  cat <<EOF>masurca.sh
+  #!/bin/bash
+  . /usr/local/stow/miniconda3-4.6.14/etc/profile.d/conda.sh
+  conda activate masurca
+  masurca -h
+  EOF
+  singularity run pyro.simg bash masurca.sh
+  ```
+  
+Or to run a more complicated example, given a reference and paired end reads:
+  ```
+  cat <<EOF>bwa.sh
+  #!/bin/bash
+  bwa index reference.fasta
+  bwa mem -t 64 reference.fasta  sample_R1.fastqsanger.gz  sample_R2.fastqsanger.gz | samtools sort -o sample.bam
+  EOF
+  singularity run pyro.simg bash bwa.sh
+  ```
+
+
