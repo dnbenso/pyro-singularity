@@ -66,10 +66,8 @@ paired end reads:
   cat <<EOF>bwa.sh
   #!/bin/bash
   bwa index reference.fasta
-  bwa mem -t 64 reference.fasta  sample_R1.fastqsanger.gz  sample_R2.fastqsanger.gz | \\
+  bwa mem -t 64 reference.fasta  sample_R1.fastqsanger.gz  sample_R2.fastqsanger.gz | \
       samtools sort -o sample.bam
   EOF
   singularity run pyro.simg bash bwa.sh
   ```
-
-
