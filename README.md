@@ -40,8 +40,8 @@ To list the software and miniconda environments available:
   singularity run pyro.simg ls /usr/local/stow
   singularity run pyro.simg ls /usr/local/stow/miniconda3-4.6.14/envs
   ```
-Where pyro.simg is the singularity image (note: you may need to load the
-singularity module on a HPC system first).
+Where pyro.simg above is the singularity image (note: you may need to load the
+singularity module on a HPC system first before running the above).
 
 To run a program:
   ```
@@ -60,12 +60,14 @@ with singularity.
   singularity run pyro.simg bash masurca.sh
   ```
   
-Or to run a more complicated example, given a reference and paired end reads:
+Or to run a more complicated example using a script file with a reference and
+paired end reads:
   ```
   cat <<EOF>bwa.sh
   #!/bin/bash
   bwa index reference.fasta
-  bwa mem -t 64 reference.fasta  sample_R1.fastqsanger.gz  sample_R2.fastqsanger.gz | samtools sort -o sample.bam
+  bwa mem -t 64 reference.fasta  sample_R1.fastqsanger.gz  sample_R2.fastqsanger.gz | \\
+      samtools sort -o sample.bam
   EOF
   singularity run pyro.simg bash bwa.sh
   ```
